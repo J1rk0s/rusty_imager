@@ -40,4 +40,8 @@ impl ImageFormat for Image {
     fn get_signature(&self) -> String {
         self.raw.get_signature()
     }
+
+    fn get_header(&self) -> String {
+        self.raw.get_header()
+    }
 }
