@@ -29,7 +29,7 @@ impl Image {
 }
 
 impl ImageFormat for Image {
-    fn get_pixel(&self, x: u32, y: u32) -> Option<Pixel> {
+    fn get_pixel(&self, x: u32, y: u32) -> Option<&Pixel> {
         self.raw.get_pixel(x, y)
     }
 

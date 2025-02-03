@@ -41,12 +41,12 @@ pub struct Bmp {
     header: BmpHeader,
     info: BmpInfo,
     colors: Option<Box<BmpColorTable>>,
-    data: Vec<u8>
+    data: Vec<Pixel>
 }
  
 impl ImageFormat for Bmp {
-    fn get_pixel(&self, x: u32, y: u32) -> Option<Pixel> {
-        todo!()
+    fn get_pixel(&self, x: u32, y: u32) -> Option<&Pixel> {
+        self.data.get(self.data.len() * x as usize + y as usize)
     }
 
     fn get_size(&self) -> u32 {
@@ -69,13 +69,13 @@ impl Bmp {
     pub fn parse(data: &[u8]) -> Option<Self> {
         let header = Bmp::parse_header(data)?;
         let info = Bmp::parse_info(data)?;
-        let pixels = data.get(54..)?;
+        let pixels = Bmp::parse_pixels(&data[54..], info.bits_per_pixel)?;
 
         Some(Bmp { 
             header, 
             info, 
             colors: None, 
-            data: pixels.iter().cloned().collect() 
+            data: pixels
         })
     }
 
@@ -98,7 +98,7 @@ impl Bmp {
         let width = u32::from_le_bytes(data.get(18..22)?.try_into().unwrap());
         let height = u32::from_le_bytes(data.get(22..26)?.try_into().unwrap());
         let planes = u16::from_le_bytes(data.get(26..28)?.try_into().unwrap());
-        let bit_count = u16::from_le_bytes(data.get(28..30)?.try_into().unwrap()); // 32 => A8 R8 G8 B8
+        let bit_count = u16::from_le_bytes(data.get(28..30)?.try_into().unwrap());
         let compression = u32::from_le_bytes(data.get(30..34)?.try_into().unwrap());
         let image_size = u32::from_le_bytes(data.get(34..38)?.try_into().unwrap());
         let x_pixels = u32::from_le_bytes(data.get(38..42)?.try_into().unwrap());
@@ -123,6 +123,7 @@ impl Bmp {
         Some(info)
     }
 
+    #[allow(dead_code)]
     fn parse_table(data: &[u8]) -> Option<BmpColorTable> {
         let r = data.get(54)?;
         let g = data.get(55)?;
@@ -135,5 +136,34 @@ impl Bmp {
             blue: *b,
             reserved: *res
         })
+    }
+
+    fn parse_pixels(data: &[u8], color_depth: u16) -> Option<Vec<Pixel>> {
+        let mut res: Vec<Pixel> = vec![];
+
+        match color_depth {
+            24 => {
+                for i in (0..data.len()).step_by(3) {
+                    let color = data.get(i..i+3);
+
+                    if let Some(color) = color {
+                        let b = color[0];
+                        let g = color[1];
+                        let r = color[2];
+
+                        res.push(Pixel {
+                            r, g, b
+                        });
+                    }
+
+                }
+            }
+
+            _ => {
+                return None
+            }
+        }
+
+        Some(res)
     }
 }
