@@ -53,7 +53,7 @@ impl ImageFormat for Image {
         self.raw.get_signature()
     }
 
-    fn get_header(&self) -> String {
-        self.raw.get_header()
+    fn get_metadata(&self) -> String {
+        self.raw.get_metadata()
     }
 }

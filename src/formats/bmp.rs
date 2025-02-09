@@ -64,7 +64,7 @@ impl ImageFormat for Bmp {
         format!("{}{}", first as char, second as char)
     }
 
-    fn get_header(&self) -> String {
+    fn get_metadata(&self) -> String {
         format!("{:?}\n{:?}", self.header, self.info)
     }
 }
