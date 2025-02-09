@@ -29,7 +29,19 @@ impl Image {
 }
 
 impl ImageFormat for Image {
-    fn get_pixel(&self, x: u32, y: u32) -> Option<&Pixel> {
+    /// Retrieves the pixel at x and y
+    /// * `x` - row
+    /// * `y` - column
+    /// 
+    /// # Example
+    /// 
+    /// ```no_run
+    /// use rusty_imager::{formats::format::ImageFormat, Image};
+    /// 
+    /// let img = Image::load_file("<path>").unwrap();
+    /// let pixel = img.get_pixel(0, 0);
+    /// ```
+    fn get_pixel(&self, x: usize, y: usize) -> Option<&Pixel> {
         self.raw.get_pixel(x, y)
     }
 

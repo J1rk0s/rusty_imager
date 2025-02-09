@@ -45,8 +45,12 @@ pub struct Bmp {
 }
  
 impl ImageFormat for Bmp {
-    fn get_pixel(&self, x: u32, y: u32) -> Option<&Pixel> {
-        self.data.get(self.data.len() * x as usize + y as usize)
+    fn get_pixel(&self, x: usize, y: usize) -> Option<&Pixel> {
+        if x > self.info.width as usize - 1 || y > self.info.height as usize - 1 {
+            return None
+        }
+
+        self.data.get((self.info.width as usize * x) + y)
     }
 
     fn get_size(&self) -> u32 {
@@ -69,7 +73,7 @@ impl Bmp {
     pub fn parse(data: &[u8]) -> Option<Self> {
         let header = Bmp::parse_header(data)?;
         let info = Bmp::parse_info(data)?;
-        let pixels = Bmp::parse_pixels(&data[54..], info.bits_per_pixel)?;
+        let pixels = Bmp::parse_pixels(&data[header.data_offset as usize..],  &info)?;
 
         Some(Bmp { 
             header, 
@@ -138,10 +142,10 @@ impl Bmp {
         })
     }
 
-    fn parse_pixels(data: &[u8], color_depth: u16) -> Option<Vec<Pixel>> {
+    fn parse_pixels(data: &[u8], bmp_info: &BmpInfo) -> Option<Vec<Pixel>> {
         let mut res: Vec<Pixel> = vec![];
 
-        match color_depth {
+        match bmp_info.bits_per_pixel {
             24 => {
                 for i in (0..data.len()).step_by(3) {
                     let color = data.get(i..i+3);
