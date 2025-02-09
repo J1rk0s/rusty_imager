@@ -38,10 +38,10 @@ pub struct BmpColorTable {
 #[repr(C)]
 #[derive(Debug, Clone)]
 pub struct Bmp {
-    header: BmpHeader,
-    info: BmpInfo,
-    colors: Option<Box<BmpColorTable>>,
-    data: Vec<Pixel>
+    pub header: BmpHeader,
+    pub info: BmpInfo,
+    pub colors: Option<Box<BmpColorTable>>,
+    pub data: Vec<Pixel>
 }
  
 impl ImageFormat for Bmp {
@@ -50,7 +50,9 @@ impl ImageFormat for Bmp {
             return None
         }
 
-        self.data.get((self.info.width as usize * x) + y)
+        //let column = (self.info.height as usize - 1) - y;
+
+        self.data.get((self.info.width as usize * y) + x)
     }
 
     fn get_size(&self) -> u32 {
@@ -66,6 +68,14 @@ impl ImageFormat for Bmp {
 
     fn get_metadata(&self) -> String {
         format!("{:?}\n{:?}", self.header, self.info)
+    }
+
+    fn get_height(&self) -> usize {
+        self.info.height as usize
+    }
+
+    fn get_width(&self) -> usize {
+        self.info.width as usize
     }
 }
 

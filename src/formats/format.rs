@@ -5,4 +5,6 @@ pub trait ImageFormat {
     fn get_size(&self) -> u32;
     fn get_signature(&self) -> String;
     fn get_metadata(&self) -> String;
+    fn get_width(&self) -> usize;
+    fn get_height(&self) -> usize;
 }

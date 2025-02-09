@@ -4,7 +4,7 @@ use crate::formats::{bmp::Bmp, format::ImageFormat};
 use crate::models::Pixel;
 
 pub struct Image {
-    pub raw: Box<dyn ImageFormat>
+    raw: Box<dyn ImageFormat>
 }
 
 impl Image {
@@ -26,6 +26,8 @@ impl Image {
         }
         
     }
+
+    // TODO: Add loading from Vec<u8>
 }
 
 impl ImageFormat for Image {
@@ -55,5 +57,13 @@ impl ImageFormat for Image {
 
     fn get_metadata(&self) -> String {
         self.raw.get_metadata()
+    }
+
+    fn get_height(&self) -> usize {
+        self.raw.get_height()
+    }
+
+    fn get_width(&self) -> usize {
+        self.raw.get_width()
     }
 }
