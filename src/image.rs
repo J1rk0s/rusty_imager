@@ -1,7 +1,7 @@
 use std::{fs::read, path::Path};
 
 use crate::formats::{bmp::Bmp, format::ImageFormat};
-use crate::models::Pixel;
+use crate::models::{ImageType, Pixel};
 
 pub struct Image {
     raw: Box<dyn ImageFormat>
@@ -27,7 +27,19 @@ impl Image {
         
     }
 
-    // TODO: Add loading from Vec<u8>
+    pub fn load_image(data: &[u8], image_type: ImageType) -> Option<Self> {
+        match image_type {
+            ImageType::Bmp => {
+                Some(Self {
+                    raw: Box::new(Bmp::parse(&data)?)
+                })
+            }
+
+            _ => {
+                None
+            }
+        }
+    }
 }
 
 impl ImageFormat for Image {
