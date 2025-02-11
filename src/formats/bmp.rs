@@ -55,6 +55,16 @@ impl ImageFormat for Bmp {
         self.data.get((self.info.width as usize * x) + y)
     }
 
+    fn set_pixel(&mut self, x: usize, y: usize, pixel: Pixel) -> Option<()> {
+        if x > self.info.width as usize - 1 || y > self.info.height as usize - 1 {
+            return None
+        }
+
+        // TODO: Add indexing from top left instead of bottom left
+        self.data[(self.info.width as usize * x) + y] = pixel;
+        Some(())
+    }
+
     fn get_size(&self) -> u32 {
         self.header.file_size
     }

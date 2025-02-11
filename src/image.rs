@@ -51,6 +51,9 @@ impl Image {
             }
         }
     }
+
+    // TODO: Add image saving
+    // TODO: Add image filter reverting
 }
 
 impl ImageFormat for Image {
@@ -68,6 +71,11 @@ impl ImageFormat for Image {
     /// ```
     fn get_pixel(&self, x: usize, y: usize) -> Option<&Pixel> {
         self.raw.get_pixel(x, y)
+    }
+
+    /// Replaces the pixel at x and y with the provided pixel
+    fn set_pixel(&mut self, x: usize, y: usize, pixel: Pixel) -> Option<()> {
+        self.raw.set_pixel(x, y, pixel)
     }
 
     /// Gets the image file size from image header 
