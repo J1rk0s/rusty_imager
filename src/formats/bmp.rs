@@ -1,7 +1,7 @@
 use super::format::ImageFormat;
 use crate::models::Pixel;
 
-#[repr(C, packed)]
+#[repr(C)]
 #[derive(Debug, Clone, Copy)]
 pub struct BmpHeader {
     signature: [u8; 2],
@@ -11,7 +11,7 @@ pub struct BmpHeader {
 }
 
 #[repr(C)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct BmpInfo {
     size: u32,
     width: u32,
@@ -23,7 +23,8 @@ pub struct BmpInfo {
     h_res: u32,
     v_res: u32,
     colors: u32,
-    important_colors: u32 
+    important_colors: u32,
+    padding: Vec<u8> 
 }
 
 #[repr(C)]
@@ -50,9 +51,8 @@ impl ImageFormat for Bmp {
             return None
         }
 
-        //let column = (self.info.height as usize - 1) - y;
-
-        self.data.get((self.info.width as usize * y) + x)
+        // TODO: Add indexing from top left instead of bottom left
+        self.data.get((self.info.width as usize * x) + y)
     }
 
     fn get_size(&self) -> u32 {
@@ -82,7 +82,7 @@ impl ImageFormat for Bmp {
 impl Bmp {
     pub fn parse(data: &[u8]) -> Option<Self> {
         let header = Bmp::parse_header(data)?;
-        let info = Bmp::parse_info(data)?;
+        let info = Bmp::parse_info(data, header.data_offset)?;
         let pixels = Bmp::parse_pixels(&data[header.data_offset as usize..],  &info)?;
 
         Some(Bmp { 
@@ -95,6 +95,11 @@ impl Bmp {
 
     fn parse_header(data: &[u8]) -> Option<BmpHeader> {
         let signature = data.get(0..2)?;
+
+        if signature != &[0x42, 0x4D] {
+            return None
+        }
+
         let size = u32::from_le_bytes(data.get(2..6)?.try_into().unwrap());
         let reserved = u32::from_le_bytes(data.get(6..10)?.try_into().unwrap());
         let offset = u32::from_le_bytes(data.get(10..14)?.try_into().unwrap());
@@ -107,7 +112,7 @@ impl Bmp {
         })
     }
 
-    fn parse_info(data: &[u8]) -> Option<BmpInfo> {
+    fn parse_info(data: &[u8], offset: u32) -> Option<BmpInfo> {
         let size = u32::from_le_bytes(data.get(14..18)?.try_into().unwrap());
         let width = u32::from_le_bytes(data.get(18..22)?.try_into().unwrap());
         let height = u32::from_le_bytes(data.get(22..26)?.try_into().unwrap());
@@ -119,6 +124,11 @@ impl Bmp {
         let y_pixels = u32::from_le_bytes(data.get(42..46)?.try_into().unwrap());
         let colors_used = u32::from_le_bytes(data.get(46..50)?.try_into().unwrap());
         let colors_important = u32::from_le_bytes(data.get(50..54)?.try_into().unwrap());
+        let mut padding: Vec<u8> = vec![];
+
+        if size > 54 {
+            padding = data.get(54..offset as usize).unwrap().iter().cloned().collect();
+        }
 
         let info = BmpInfo {
             size,
@@ -131,7 +141,8 @@ impl Bmp {
             h_res: x_pixels,
             v_res: y_pixels,
             colors: colors_used,
-            important_colors: colors_important
+            important_colors: colors_important,
+            padding: padding
         };
 
         Some(info)
