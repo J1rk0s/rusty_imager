@@ -1,2 +1,4 @@
 pub mod bmp;
-pub mod format;
+mod format;
+
+pub use format::ImageFormat;
