@@ -1,1 +1,2 @@
-mod bmp_parse_tests;
+mod parsing;
+mod pixel_tests;
