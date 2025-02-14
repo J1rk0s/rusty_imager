@@ -42,7 +42,7 @@ impl Image {
         match image_type {
             ImageType::Bmp => {
                 Some(Self {
-                    raw: Box::new(Bmp::parse(&data)?)
+                    raw: Box::new(Bmp::parse(data)?)
                 })
             }
 

@@ -106,7 +106,7 @@ impl Bmp {
     fn parse_header(data: &[u8]) -> Option<BmpHeader> {
         let signature = data.get(0..2)?;
 
-        if signature != &[0x42, 0x4D] {
+        if signature != [0x42, 0x4D] {
             return None
         }
 
@@ -137,7 +137,7 @@ impl Bmp {
         let mut padding: Vec<u8> = vec![];
 
         if size > 54 {
-            padding = data.get(54..offset as usize).unwrap().iter().cloned().collect();
+            padding = data.get(54..offset as usize).unwrap().to_vec();
         }
 
         let info = BmpInfo {
