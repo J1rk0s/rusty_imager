@@ -64,10 +64,6 @@ impl Image {
 
         Ok(())
     }
-
-    // TODO: Add image saving
-    // TODO: Add image filter reverting
-    // TODO: Add image filter applying
 }
 
 impl ImageFormat for Image {
