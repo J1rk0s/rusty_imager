@@ -10,7 +10,13 @@ pub struct Image {
 
 impl Image {
     /// Loads the image from specified path
-    pub fn load_file(path: &str) -> Option<Self> {
+    /// # Example
+    /// ```no_run
+    /// use rusty_imager::Image;
+    /// 
+    /// let img = Image::from_file("<path>").expect("File not found!");
+    /// ```
+    pub fn from_file(path: &str) -> Option<Self> {
         let p = Path::new(path);
         let ext = p.extension()?.to_str()?;
         let data = fs::read(p).ok()?;
@@ -34,8 +40,9 @@ impl Image {
     /// ```no_run
     /// use std::fs;
     /// use rusty_imager::models::ImageType;
+    /// use rusty_imager::Image;
     /// 
-    /// let data = fs::read("<path>").unwrap();
+    /// let data = fs::read("<path>").expect("File not found!");
     /// let img = Image::load_image(&data, ImageType::Bmp);
     /// // Do something with the image
     /// ```
@@ -53,10 +60,30 @@ impl Image {
         }
     }
 
+    /// Applies a filter to the image
+    /// # Example
+    /// ```no_run
+    /// use rusty_imager::Image;
+    /// use rusty_imager::filters::ColorInversion;
+    /// 
+    /// let mut img = Image::from_file("<path>").expect("File not found!");
+    /// img.apply_filter(ColorInversion::new());
+    /// ```
     pub fn apply_filter(&mut self, filter: impl ImageFilter) {
         filter.apply(&mut self.raw);
     }
 
+    /// Saves the loaded image
+    /// # Example
+    /// ```no_run
+    /// use rusty_imager::Image;
+    /// use rusty_imager::filters::ColorInversion;
+    /// 
+    /// let mut img = Image::from_file("<path>").expect("File not found!");
+    /// img.apply_filter(ColorInversion::new());
+    /// 
+    /// img.save("<name>.<ext>");
+    /// ```
     pub fn save(self, path: &str) -> Result<(), std::io::Error>{
         let bytes = self.to_bytes();
 
@@ -74,9 +101,9 @@ impl ImageFormat for Image {
     /// # Example
     /// 
     /// ```no_run
-    /// use rusty_imager::{formats::format::ImageFormat, Image};
+    /// use rusty_imager::{formats::ImageFormat, Image};
     /// 
-    /// let img = Image::load_file("<path>").unwrap();
+    /// let img = Image::from_file("<path>").expect("File not found!");
     /// let pixel = img.get_pixel(0, 0);
     /// ```
     fn get_pixel(&self, x: usize, y: usize) -> Option<&Pixel> {
@@ -89,11 +116,13 @@ impl ImageFormat for Image {
     /// 
     /// # Example
     /// ```no_run
-    /// let img = Image::from_file("<path>");
+    /// use rusty_imager::{formats::ImageFormat, Image};
+    /// 
+    /// let mut img = Image::from_file("<path>").expect("File not found!");
     /// for x in 0..img.get_width() {
     ///     for y in 0..img.get_height() {
-    ///         let pixel = img.get_pixel(x, y);
-    ///         img.set_pixel(x, y, pixel);
+    ///         let pixel = img.get_pixel(x, y).unwrap();
+    ///         img.set_pixel(x, y, pixel.clone());
     ///     }
     /// }
     /// ```
@@ -107,6 +136,13 @@ impl ImageFormat for Image {
     }
 
     /// Gets the image header signature
+    /// # Example
+    /// ```no_run
+    /// use rusty_imager::{formats::ImageFormat, Image};
+    /// 
+    /// let img = Image::from_file("<path>").expect("Failed to load file");
+    /// println!("{}", img.get_signature()); // For bmp it returns BM
+    /// ```
     fn get_signature(&self) -> String {
         self.raw.get_signature()
     }
@@ -119,9 +155,11 @@ impl ImageFormat for Image {
     /// Gets the image height
     /// # Example
     /// ```no_run
-    /// let img = Image::from_file("<name>");
-    /// for x in img.get_width() {
-    ///     for y in img.get_height() {
+    /// use rusty_imager::{formats::ImageFormat, Image};
+    /// 
+    /// let img = Image::from_file("<name>").expect("File not found!");
+    /// for x in 0..img.get_width() {
+    ///     for y in 0..img.get_height() {
     ///         // Do something
     ///     }
     /// }
@@ -133,9 +171,11 @@ impl ImageFormat for Image {
     /// Gets the image height
     /// # Example
     /// ```no_run
-    /// let img = Image::from_file("<name>");
-    /// for x in img.get_width() {
-    ///     for y in img.get_height() {
+    /// use rusty_imager::{formats::ImageFormat, Image};
+    /// 
+    /// let img = Image::from_file("<name>").expect("File not found!");
+    /// for x in 0..img.get_width() {
+    ///     for y in 0..img.get_height() {
     ///         // Do something
     ///     }
     /// }
@@ -144,6 +184,19 @@ impl ImageFormat for Image {
         self.raw.get_width()
     }
 
+    /// Converts the image back to bytes
+    /// # Example
+    /// ```no_run
+    /// use rusty_imager::Image;
+    /// use rusty_imager::formats::ImageFormat;
+    /// use rusty_imager::filters::ColorInversion;
+    /// use std::fs;
+    /// 
+    /// let mut img = Image::from_file("<path>").expect("File not found!");
+    /// img.apply_filter(ColorInversion::new());
+    /// 
+    /// fs::write("<path>", img.to_bytes()).expect("Failed to save the image");
+    /// ```
     fn to_bytes(&self) -> Vec<u8> {
         self.raw.to_bytes()
     }
