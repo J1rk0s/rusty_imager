@@ -24,4 +24,19 @@ impl Pixel {
     pub fn to_hex(&self) -> String {
         format!("#{:x}{:x}{:x}", self.r, self.g, self.b)
     }
+
+    pub fn to_bytes(&self, reverse: bool) -> Vec<u8> {
+        let mut res: Vec<u8> = vec![];
+        if reverse {
+            res.push(self.b);
+            res.push(self.g);
+            res.push(self.r);
+        } else {
+            res.push(self.r);
+            res.push(self.g);
+            res.push(self.b);
+        }
+
+        res
+    }
 }

@@ -57,6 +57,14 @@ impl Image {
         filter.apply(&mut self.raw);
     }
 
+    pub fn save(self, path: &str) -> Result<(), std::io::Error>{
+        let bytes = self.to_bytes();
+
+        fs::write(path, bytes)?;
+
+        Ok(())
+    }
+
     // TODO: Add image saving
     // TODO: Add image filter reverting
     // TODO: Add image filter applying
@@ -138,5 +146,9 @@ impl ImageFormat for Image {
     /// ```
     fn get_width(&self) -> usize {
         self.raw.get_width()
+    }
+
+    fn to_bytes(&self) -> Vec<u8> {
+        self.raw.to_bytes()
     }
 }

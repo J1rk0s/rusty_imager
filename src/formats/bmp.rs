@@ -1,3 +1,4 @@
+use std::io::Write;
 use super::format::ImageFormat;
 use crate::models::Pixel;
 
@@ -87,11 +88,45 @@ impl ImageFormat for Bmp {
     fn get_width(&self) -> usize {
         self.info.width as usize
     }
-}
 
-impl Into<Vec<u8>> for Bmp {
-    fn into(self) -> Vec<u8> {
-        
+    fn to_bytes(&self) -> Vec<u8> {
+        fn convert_header(header: BmpHeader) -> Vec<u8> {
+            let mut res: Vec<u8> = vec![];
+            res.write_all(&header.signature).unwrap();
+            res.write_all(&header.file_size.to_le_bytes()).unwrap();
+            res.write_all(&header.reserved.to_le_bytes()).unwrap();
+            res.write_all(&header.data_offset.to_le_bytes()).unwrap();
+
+            res
+        }
+        fn convert_info(info: &BmpInfo) -> Vec<u8> {
+            let mut res: Vec<u8> = vec![];
+            res.write_all(&info.size.to_le_bytes()).unwrap();
+            res.write_all(&info.width.to_le_bytes()).unwrap();
+            res.write_all(&info.height.to_le_bytes()).unwrap();
+            res.write_all(&info.planes.to_le_bytes()).unwrap();
+            res.write_all(&info.bits_per_pixel.to_le_bytes()).unwrap();
+            res.write_all(&info.compression.to_le_bytes()).unwrap();
+            res.write_all(&info.image_size.to_le_bytes()).unwrap();
+            res.write_all(&info.h_res.to_le_bytes()).unwrap();
+            res.write_all(&info.v_res.to_le_bytes()).unwrap();
+            res.write_all(&info.colors.to_le_bytes()).unwrap();
+            res.write_all(&info.important_colors.to_le_bytes()).unwrap();
+            res.write_all(&info.padding).unwrap();
+
+            res
+        }
+        fn convert_data(data: &Vec<Pixel>) -> Vec<u8> {
+            data.iter().flat_map(|p| p.to_bytes(true)).collect()
+        }
+
+        let mut img: Vec<u8> = vec![];
+        img.write_all(&convert_header(self.header)).unwrap();
+        img.write_all(&convert_info(&self.info)).unwrap();
+        img.write_all(&convert_data(&self.data)).unwrap();
+        img.write_all(&[0, 0]).unwrap();
+
+        img
     }
 }
 

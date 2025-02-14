@@ -8,4 +8,6 @@ pub trait ImageFormat {
     fn get_metadata(&self) -> String;
     fn get_width(&self) -> usize;
     fn get_height(&self) -> usize;
+
+    fn to_bytes(&self) -> Vec<u8>;
 }
