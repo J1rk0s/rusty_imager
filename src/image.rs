@@ -1,4 +1,4 @@
-use std::{fs::read, path::Path};
+use std::{fs, path::Path};
 
 use crate::formats::{bmp::Bmp, ImageFormat};
 use crate::models::{ImageType, Pixel};
@@ -12,7 +12,7 @@ impl Image {
     pub fn load_file(path: &str) -> Option<Self> {
         let p = Path::new(path);
         let ext = p.extension()?.to_str()?;
-        let data = read(p).ok()?;
+        let data = fs::read(p).ok()?;
 
         match ext {
             "bmp" => {
@@ -54,6 +54,7 @@ impl Image {
 
     // TODO: Add image saving
     // TODO: Add image filter reverting
+    // TODO: Add image filter applying
 }
 
 impl ImageFormat for Image {
@@ -74,6 +75,19 @@ impl ImageFormat for Image {
     }
 
     /// Replaces the pixel at x and y with the provided pixel
+    /// * `x` - row
+    /// * `y` - column
+    /// 
+    /// # Example
+    /// ```no_run
+    /// let img = Image::from_file("<path>");
+    /// for x in img.get_width() {
+    ///     for y in img.get_height() {
+    ///         let pixel = img.get_pixel(x, y);
+    ///         img.set_pixel(x, y, pixel);
+    ///     }
+    /// }
+    /// ```
     fn set_pixel(&mut self, x: usize, y: usize, pixel: Pixel) -> Option<()> {
         self.raw.set_pixel(x, y, pixel)
     }
