@@ -131,6 +131,8 @@ impl ImageFormat for Bmp {
 }
 
 impl Bmp {
+
+    // TODO: Switch from Option<Self> to Result<Self, ImageFormatError>
     pub fn parse(data: &[u8]) -> Option<Self> {
         let header = Bmp::parse_header(data)?;
         let info = Bmp::parse_info(data, header.data_offset)?;
