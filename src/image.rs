@@ -1,5 +1,6 @@
 use std::{fs, path::Path};
 
+use crate::filters::ImageFilter;
 use crate::formats::{bmp::Bmp, ImageFormat};
 use crate::models::{ImageType, Pixel};
 
@@ -50,6 +51,10 @@ impl Image {
                 None
             }
         }
+    }
+
+    pub fn apply_filter(&mut self, filter: impl ImageFilter) {
+        filter.apply(&mut self.raw);
     }
 
     // TODO: Add image saving

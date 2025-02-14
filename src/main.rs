@@ -1,7 +1,6 @@
-use rusty_imager::{formats::ImageFormat, Image};
+use rusty_imager::{filters::GaussianBlur, formats::ImageFormat, Image};
 
 fn main() -> () {
-    let img = Image::load_file("data/reference.bmp").unwrap();
-    println!("{}", img.get_metadata());
-    println!("{:?}", img.get_pixel(1, 0).unwrap());
+    let mut img = Image::load_file("data/reference.bmp").unwrap();
+    img.apply_filter(GaussianBlur::new(2));
 }

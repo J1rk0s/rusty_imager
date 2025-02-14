@@ -89,11 +89,19 @@ impl ImageFormat for Bmp {
     }
 }
 
+impl Into<Vec<u8>> for Bmp {
+    fn into(self) -> Vec<u8> {
+        
+    }
+}
+
 impl Bmp {
     pub fn parse(data: &[u8]) -> Option<Self> {
         let header = Bmp::parse_header(data)?;
         let info = Bmp::parse_info(data, header.data_offset)?;
         let pixels = Bmp::parse_pixels(&data[header.data_offset as usize..],  &info)?;
+
+        // TODO: Add support for color table and compression
 
         Some(Bmp { 
             header, 
