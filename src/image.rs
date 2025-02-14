@@ -94,8 +94,8 @@ impl ImageFormat for Image {
     /// # Example
     /// ```no_run
     /// let img = Image::from_file("<path>");
-    /// for x in img.get_width() {
-    ///     for y in img.get_height() {
+    /// for x in 0..img.get_width() {
+    ///     for y in 0..img.get_height() {
     ///         let pixel = img.get_pixel(x, y);
     ///         img.set_pixel(x, y, pixel);
     ///     }

@@ -1,6 +1,8 @@
-use rusty_imager::Image;
+use rusty_imager::{filters::ColorInversion, Image};
 
 fn main() -> () {
-    let img = Image::load_file("data/reference.bmp").unwrap();
-    img.save("output.bmp").unwrap();
+    let mut img = Image::load_file("data/reference.bmp").unwrap();
+    img.apply_filter(ColorInversion::new());
+
+    img.save("test.bmp").unwrap();
 }

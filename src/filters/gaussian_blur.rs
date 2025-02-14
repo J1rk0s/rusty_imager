@@ -1,6 +1,7 @@
 use super::ImageFilter;
 use crate::formats::ImageFormat;
 
+#[allow(dead_code)]
 pub struct GaussianBlur {
     intensity: u16
 }

@@ -1,4 +1,4 @@
-use crate::{formats::ImageFormat, models::Pixel};
+use crate::formats::ImageFormat;
 
 pub trait ImageFilter {
     fn apply(&self, img: &mut Box<dyn ImageFormat>);
