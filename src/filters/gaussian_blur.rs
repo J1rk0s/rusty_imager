@@ -16,6 +16,10 @@ impl GaussianBlur {
 
 impl ImageFilter for GaussianBlur {
     fn apply(&self, img: &mut Box<dyn ImageFormat>) {
-        println!("{}", img.get_metadata())
+        for i in 0..img.get_width() {
+            for j in 0..img.get_height() {
+                
+            }
+        }
     }
 }
