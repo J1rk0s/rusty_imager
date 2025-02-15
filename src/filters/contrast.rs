@@ -3,12 +3,12 @@ use crate::models::Pixel;
 use super::ImageFilter;
 
 pub struct Contrast {
-    intensity: u8
+    intensity: f32
 }
 
 impl Contrast {
     #[allow(dead_code)]
-    pub fn new(intensity: u8) -> Self {
+    pub fn new(intensity: f32) -> Self {
         Self {
             intensity
         }
@@ -20,9 +20,9 @@ impl ImageFilter for Contrast {
         for i in 0..img.get_width() {
             for j in 0..img.get_height() {
                 if let Some(pixel) = img.get_pixel(i, j) {
-                    let r = ((pixel.r - 128) * self.intensity) + 128;
-                    let g = ((pixel.g - 128) * self.intensity) + 128;
-                    let b = ((pixel.b - 128) * self.intensity) + 128;
+                    let r = (((pixel.r as f32 - 128f32) * self.intensity) + 128f32) as u8;
+                    let g = (((pixel.g as f32 - 128f32) * self.intensity) + 128f32) as u8;
+                    let b = (((pixel.b as f32 - 128f32) * self.intensity) + 128f32) as u8;
 
                     let px = Pixel {
                         r, g, b
