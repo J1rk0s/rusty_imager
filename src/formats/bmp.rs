@@ -52,7 +52,6 @@ impl ImageFormat for Bmp {
             return None
         }
 
-        // TODO: Add indexing from top left instead of bottom left
         self.data.get((self.info.width as usize * y) + x)
     }
 
@@ -61,7 +60,6 @@ impl ImageFormat for Bmp {
             return None
         }
 
-        // TODO: Add indexing from top left instead of bottom left
         self.data[(self.info.width as usize * y) + x] = pixel;
         Some(())
     }
