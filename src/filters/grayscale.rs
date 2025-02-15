@@ -16,7 +16,7 @@ impl ImageFilter for Grayscale {
         for i in 0..img.get_width() {
             for j in 0..img.get_height() {
                 if let Some(pixel) = img.get_pixel(i, j) {
-                    let gray = (pixel.r + pixel.g + pixel.b) / 3;
+                    let gray = ((pixel.r as u16 + pixel.g as u16 + pixel.b as u16) / 3) as u8;
                     let px = Pixel {
                         r: gray,
                         g: gray,

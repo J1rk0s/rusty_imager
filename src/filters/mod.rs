@@ -7,3 +7,4 @@ mod contrast;
 pub use filter::ImageFilter;
 pub use gaussian_blur::GaussianBlur;
 pub use color_inversion::ColorInversion;
+pub use grayscale::Grayscale;
