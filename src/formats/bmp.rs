@@ -53,7 +53,7 @@ impl ImageFormat for Bmp {
         }
 
         // TODO: Add indexing from top left instead of bottom left
-        self.data.get((self.info.width as usize * x) + y)
+        self.data.get((self.info.width as usize * y) + x)
     }
 
     fn set_pixel(&mut self, x: usize, y: usize, pixel: Pixel) -> Option<()> {
@@ -62,7 +62,7 @@ impl ImageFormat for Bmp {
         }
 
         // TODO: Add indexing from top left instead of bottom left
-        self.data[(self.info.width as usize * x) + y] = pixel;
+        self.data[(self.info.width as usize * y) + x] = pixel;
         Some(())
     }
 
