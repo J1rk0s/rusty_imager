@@ -53,10 +53,6 @@ impl Image {
                     raw: Box::new(Bmp::parse(data)?)
                 })
             }
-
-            _ => {
-                None
-            }
         }
     }
 
