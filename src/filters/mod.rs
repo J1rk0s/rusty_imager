@@ -5,6 +5,9 @@ mod grayscale;
 mod contrast;
 mod brightness;
 mod threshold;
+mod box_blur;
+mod edge_detection;
+mod emboss;
 
 pub use filter::ImageFilter;
 pub use gaussian_blur::GaussianBlur;
@@ -13,3 +16,6 @@ pub use grayscale::Grayscale;
 pub use contrast::Contrast;
 pub use brightness::Brightness;
 pub use threshold::Threshold;
+pub use box_blur::BoxBlur;
+pub use edge_detection::EdgeDetection;
+pub use emboss::Emboss;
