@@ -1,6 +1,6 @@
 use std::f32::consts::{E, PI};
 
-pub fn CalculateGaussianKernel(sigma: f32, size: u32) -> Vec<Vec<f32>> {
+pub fn calculate_gaussian_kernel(sigma: f32, size: u32) -> Vec<Vec<f32>> {
     assert!(size % 2 != 0);
 
     let mut res: Vec<Vec<f32>> = vec![vec![0f32; size as usize]; size as usize];

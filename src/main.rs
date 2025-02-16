@@ -1,8 +1,8 @@
-use rusty_imager::{filters::{Contrast, GaussianBlur}, Image};
+use rusty_imager::{filters::GaussianBlur, Image};
 
 fn main() -> () {
-    let mut img = Image::from_file("C:/Users/Kris/Pictures/MegaRender.bmp").unwrap();
-    img.apply_filter(GaussianBlur::new(1f32, 3));
+    let mut img = Image::from_file("data/reference.bmp").unwrap();
+    img.apply_filter(GaussianBlur::new(10f32, 7));
 
     img.save("test.bmp").unwrap();
 }
