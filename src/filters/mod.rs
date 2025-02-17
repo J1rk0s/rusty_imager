@@ -1,3 +1,5 @@
+//! Contains some basic filters
+
 mod filter;
 mod gaussian_blur;
 mod color_inversion;

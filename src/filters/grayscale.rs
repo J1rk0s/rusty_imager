@@ -2,6 +2,7 @@ use crate::models::Pixel;
 
 use super::ImageFilter;
 
+/// Converts the entire image to grayscale
 pub struct Grayscale;
 
 impl Grayscale {

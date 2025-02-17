@@ -2,6 +2,7 @@ use crate::models::Pixel;
 
 use super::{Grayscale, ImageFilter};
 
+/// Performs a simple emboss algorithm on the image
 pub struct Emboss {}
 
 impl Emboss {

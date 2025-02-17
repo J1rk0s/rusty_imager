@@ -1,5 +1,6 @@
 use super::ImageFilter;
 
+/// Performs color inversion on the image
 pub struct ColorInversion {}
 
 impl ColorInversion {

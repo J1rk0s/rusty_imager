@@ -2,6 +2,7 @@ use crate::models::Pixel;
 
 use super::ImageFilter;
 
+/// Performs a simple sharpening filter on the image
 pub struct Sharpen {
     intensity: u32
 }

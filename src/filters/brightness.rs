@@ -2,6 +2,7 @@ use crate::models::Pixel;
 
 use super::ImageFilter;
 
+/// Allows you to increase the image brightness
 pub struct Brightness {
     intensity: u8
 }

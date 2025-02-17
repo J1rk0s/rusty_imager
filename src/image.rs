@@ -1,9 +1,12 @@
+//! Wrapper over lower level image formats
+
 use std::{fs, path::Path};
 
 use crate::filters::ImageFilter;
 use crate::formats::{bmp::Bmp, ImageFormat};
 use crate::models::{ImageType, Pixel};
 
+/// Wrapper over low level image types
 pub struct Image {
     raw: Box<dyn ImageFormat>
 }

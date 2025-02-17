@@ -1,7 +1,9 @@
 use super::ImageFilter;
 use crate::{formats::ImageFormat, models::Pixel, utils::calculate_gaussian_kernel};
 
-#[allow(dead_code)]
+/// Performs a gaussian blur on the image
+/// # Panics
+/// This will panic if the size provided is not odd
 pub struct GaussianBlur {
     intensity: f32,
     kernel_size: u32

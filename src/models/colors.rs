@@ -1,5 +1,6 @@
 use crate::models::Pixel;
 
+/// List of some basic colors
 pub struct Colors {}
 
 impl Colors {

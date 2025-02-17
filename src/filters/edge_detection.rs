@@ -2,6 +2,7 @@ use crate::models::{Colors, Pixel};
 
 use super::ImageFilter;
 
+/// Performs a simple edge detection using sobel algorithm on the image
 pub struct EdgeDetection {
     threshold: f32,
     multiplier: f32

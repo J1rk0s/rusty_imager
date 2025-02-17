@@ -4,6 +4,7 @@ use crate::models::Pixel;
 
 use super::ImageFilter;
 
+/// Performs a simple oil paintning algorithm on the image
 pub struct OilPainting {
     size: u32
 }

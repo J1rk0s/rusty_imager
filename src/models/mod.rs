@@ -1,3 +1,5 @@
+//! Contains basic data types
+
 mod pixel;
 mod image_type;
 mod colors;

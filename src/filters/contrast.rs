@@ -2,6 +2,7 @@ use crate::models::Pixel;
 
 use super::ImageFilter;
 
+/// Allows you to increase the image contrast
 pub struct Contrast {
     intensity: f32
 }

@@ -1,5 +1,6 @@
 use crate::models::Pixel;
 
+/// All image formats must implement this traits
 pub trait ImageFormat {
     fn get_pixel(&self, x: usize, y: usize) -> Option<&Pixel>;
     fn set_pixel(&mut self, x: usize, y: usize, pixel: Pixel) -> Option<()>;

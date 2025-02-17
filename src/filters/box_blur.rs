@@ -2,6 +2,10 @@ use crate::models::Pixel;
 
 use super::ImageFilter;
 
+/// Performs a simple blur on the image
+/// 
+/// # Panics
+/// This will panic if the size provided is not odd
 pub struct BoxBlur {
     size: usize
 }

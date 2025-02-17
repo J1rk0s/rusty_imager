@@ -1,3 +1,5 @@
+//! Bitmap file structure
+
 use std::io::Write;
 use super::format::ImageFormat;
 use crate::models::Pixel;
@@ -39,6 +41,8 @@ pub struct BmpColorTable {
 
 #[repr(C)]
 #[derive(Debug, Clone)]
+/// Direct usage of this struct is not recomended
+/// <div class="warning">Use Image instead</div>
 pub struct Bmp {
     pub header: BmpHeader,
     pub info: BmpInfo,
@@ -129,7 +133,7 @@ impl ImageFormat for Bmp {
 }
 
 impl Bmp {
-
+    /// Parses the bmp from a byte buffer
     // TODO: Switch from Option<Self> to Result<Self, ImageFormatError>
     pub fn parse(data: &[u8]) -> Option<Self> {
         let header = Bmp::parse_header(data)?;

@@ -2,6 +2,9 @@ use crate::models::Colors;
 
 use super::ImageFilter;
 
+/// Performs a simple threshold algorithm on the image
+/// 
+/// If a pixel is bellow the threshold the resulting pixel will be black otherwise it is white
 pub struct Threshold {
     treshold: u16 
 }
