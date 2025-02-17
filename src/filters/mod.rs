@@ -9,6 +9,7 @@ mod box_blur;
 mod edge_detection;
 mod emboss;
 mod oil_painting;
+mod sharpen;
 
 pub use filter::ImageFilter;
 pub use gaussian_blur::GaussianBlur;
@@ -21,3 +22,4 @@ pub use box_blur::BoxBlur;
 pub use edge_detection::EdgeDetection;
 pub use emboss::Emboss;
 pub use oil_painting::OilPainting;
+pub use sharpen::Sharpen;

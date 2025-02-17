@@ -66,6 +66,7 @@ impl Image {
     /// img.apply_filter(ColorInversion::new());
     /// ```
     pub fn apply_filter(&mut self, filter: impl ImageFilter) {
+        // TODO: Fix artefacts
         filter.apply(&mut self.raw);
     }
 
