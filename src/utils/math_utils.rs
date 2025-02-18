@@ -1,5 +1,6 @@
 use std::f32::consts::{E, PI};
 
+/// Calculates the gaussian kernel from given sigma and size
 pub fn calculate_gaussian_kernel(sigma: f32, size: u32) -> Vec<Vec<f32>> {
     assert!(size % 2 != 0);
 
