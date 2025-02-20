@@ -2,6 +2,7 @@
 
 pub mod bmp;
 pub mod ppm;
+pub mod png;
 
 mod format;
 

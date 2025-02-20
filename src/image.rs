@@ -3,6 +3,7 @@
 use std::{fs, path::Path};
 
 use crate::filters::ImageFilter;
+use crate::formats::png::Png;
 use crate::formats::ppm::Ppm;
 use crate::formats::{bmp::Bmp, ImageFormat};
 use crate::models::{ImageType, Pixel};
@@ -35,6 +36,12 @@ impl Image {
             "ppm" => {
                 Some(Self { 
                     raw: Box::new(Ppm::parse(&data)?)
+                })
+            }
+
+            "png" => {
+                Some(Self {
+                    raw: Box::new(Png::parse(&data)?)
                 })
             }
 
