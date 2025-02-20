@@ -148,38 +148,33 @@ impl Png {
         }
 
         let header: PngHeader = unsafe { std::ptr::read(data[0..8].as_ptr() as *const _) };
-        let ihdr: PngIhdr = Png::parse_ihdr(data.get(8..36)?)?;
+        let chunks = Png::parse_chunks(data.get(8..)?)?;
 
-        println!("{:?}", header);
-        println!("{:?}", ihdr);
-
-        todo!()
+        Some(Self {
+            header,
+            chunks
+        })
     }
 
-    fn parse_ihdr(data: &[u8]) -> Option<PngIhdr> {
-        let length: u32 = u32::from_be_bytes(data.get(0..4)?.try_into().unwrap());
-        let signature = data.get(4..8)?;
+    fn parse_ihdr(length: u32, signature: &[u8], data: &[u8], crc: u32) -> Option<PngIhdr> {
+        let width = u32::from_be_bytes(data.get(0..4)?.try_into().unwrap());
+        let height = u32::from_be_bytes(data.get(4..8)?.try_into().unwrap());
 
-        let width = u32::from_be_bytes(data.get(8..12)?.try_into().unwrap());
-        let height = u32::from_be_bytes(data.get(12..16)?.try_into().unwrap());
-
-        let bit_depth= data.get(16)?;
-        let color_type = match data.get(17)? {
+        let bit_depth= data.get(8)?;
+        let color_type = match data.get(9)? {
             0 => PngColorType::Grayscale,
             2 => PngColorType::RGB,
             _ => PngColorType::Unknown
         };
 
-        let compression_method = data.get(18)?;
-        let filter_method = data.get(19)?;
+        let compression_method = data.get(10)?;
+        let filter_method = data.get(11)?;
 
-        let interlacing = match data.get(20)? {
+        let interlacing = match data.get(12)? {
             0 => PngInterlacing::None,
             1 => PngInterlacing::Adam7,
             _ => panic!("Invalid interlacing")
         };
-
-        let crc = u32::from_be_bytes(data.get(21..25)?.try_into().unwrap());
         
         Some(PngIhdr {
             length,
@@ -194,11 +189,174 @@ impl Png {
             crc
         })
     }
+
+    fn parse_iccp(length: u32, signature: &[u8], data: &[u8], crc: u32) -> Option<PngIccp> {
+        let mut keyword = String::new();
+
+        let mut index = 0;
+
+        while index < data.len() {
+            if *data.get(index)? == 0x00 {
+                break;
+            }
+
+            keyword.push(*data.get(index)? as char);
+            index += 1;
+        }
+
+        let compression_method = data.get(index + 1)?;
+        let profile = data.get(index + 2..)?;
+
+        Some(PngIccp {
+            length,
+            signature: signature.try_into().unwrap(),
+            keyword,
+            compression_method: *compression_method,
+            compression_profile: profile.to_vec(),
+            crc
+        })
+    }
+
+    fn parse_time(length: u32, signature: &[u8], data: &[u8], crc: u32) -> Option<PngTime> {
+        let year = u16::from_be_bytes(data.get(0..2)?.try_into().unwrap());
+        let month = data.get(2)?;
+        let day = data.get(3)?;
+        let hour = data.get(4)?;
+        let minute = data.get(5)?;
+        let second = data.get(6)?;
+
+        Some(PngTime {
+            length,
+            signature: signature.try_into().unwrap(),
+            year,
+            month: *month,
+            day: *day,
+            hour: *hour,
+            minute: *minute,
+            second: *second,
+            crc
+        })
+    }
+
+    fn parse_idat(length: u32, signature: &[u8], data: &[u8], crc: u32) -> Option<PngIdata> {
+        Some(PngIdata {
+            length,
+            signature: signature.try_into().unwrap(),
+            data: data.to_vec(),
+            crc
+        })
+    }
+
+    fn parse_iend(length: u32, signature: &[u8], crc: u32) -> Option<PngIend> {
+        Some(PngIend {
+            length,
+            signature: signature.try_into().unwrap(),
+            crc
+        })
+    }
+
+    fn parse_phys(length: u32, signature: &[u8], data: &[u8], crc: u32) -> Option<PngPhys> {
+        let pixel_per_x = u32::from_be_bytes(data.get(0..4)?.try_into().ok()?);
+        let pixel_per_y = u32::from_be_bytes(data.get(4..8)?.try_into().ok()?);
+        let unit = match data.get(8)? {
+            0 => PngUnit::Unknown,
+            1 => PngUnit::Meter,
+            _ => panic!("Unknown png unit format")
+        };
+
+        Some(PngPhys {
+            length,
+            signature: signature.try_into().ok()?,
+            pixel_per_unit_x: pixel_per_x,
+            pixel_per_unit_y: pixel_per_y,
+            unit,
+            crc
+        })
+    }
+ 
+    fn parse_text(length: u32, signature: &[u8], data: &[u8], crc: u32) -> Option<PngText> {
+        todo!()
+    }
+
+    fn parse_chunks(data: &[u8]) -> Option<Vec<PngChunk>> {
+        let mut chunks: Vec<PngChunk> = vec![];
+        let mut index = 0;
+
+        while index + 12 <= data.len() {
+            let length = u32::from_be_bytes(data.get(index..index+4)?.try_into().unwrap()) as usize;
+            let signature = data.get(index+4..index+8)?;
+
+            if index + 8 + length >= data.len() {
+                return None;
+            }
+
+            let chunk_data = data.get((index + 8)..(index + 8 + length))?;
+            let crc = u32::from_be_bytes(data.get((index + 8 + length)..(index + 12 + length))?.try_into().unwrap());
+
+            index += 12 + length;
+
+            let chunk = match signature {
+                b"IHDR" => {
+                    let ihdr = Png::parse_ihdr(length as u32, signature, chunk_data, crc)?;
+                    PngChunk::IHDR(ihdr)
+                }
+
+                b"iCCP" => {
+                    PngChunk::ICCP(Png::parse_iccp(length as u32, signature, chunk_data, crc)?)
+                }
+
+                b"pHYs" => {
+                    PngChunk::PHYS(Png::parse_phys(length as u32, signature, chunk_data, crc)?)
+                }
+
+                b"tIME" => {
+                    PngChunk::TIME(Png::parse_time(length as u32, signature, chunk_data, crc)?)
+                }
+
+                b"IDAT" => {
+                    PngChunk::IDAT(Png::parse_idat(length as u32, signature, chunk_data, crc)?)
+                }
+
+                b"IEND" => {
+                    PngChunk::IEND(Png::parse_iend(length as u32, signature, crc)?)
+                }
+
+                _ => {
+                    //PngChunk::Unknown { length: length as u32, signature: signature.try_into().unwrap(), data: chunk_data.to_vec(), crc }
+                    todo!("Png chunk not yet implemented")
+                }
+            };
+
+            chunks.push(chunk);
+        }
+
+        Some(chunks)
+    }
+
+    fn get_chunk(&self, signature: &[u8]) -> Option<&PngChunk> {
+        self.chunks.iter().find(|chunk| match chunk {
+            PngChunk::IHDR(_) => signature == b"IHDR",
+            PngChunk::IDAT(_) => signature == b"IDAT",
+            PngChunk::PLTE(_) => signature == b"PLTE",
+            PngChunk::IEND(_) => signature == b"IEND",
+            PngChunk::TEXT(_) => signature == b"tEXt",
+            PngChunk::ICCP(_) => signature == b"iCCP",
+            PngChunk::PHYS(_) => signature == b"pHYs",
+            PngChunk::TIME(_) => signature == b"tIME",
+            PngChunk::Unknown { signature: sig, .. } => sig == signature,
+        })
+    }
 }
 
 impl ImageFormat for Png {
     fn get_height(&self) -> usize {
-        todo!()
+        let chunk = self.get_chunk(b"IHDR").expect("Image does not have height metadata");
+
+        if let PngChunk::IHDR(ihdr) = chunk {
+            ihdr.height as usize
+        } else {
+            0
+        }
     }
 
     fn get_metadata(&self) -> String {
@@ -218,7 +376,13 @@ impl ImageFormat for Png {
     }
 
     fn get_width(&self) -> usize {
-        todo!()
+        let chunk = self.get_chunk(b"IHDR").expect("Image does not have height metadata");
+
+        if let PngChunk::IHDR(ihdr) = chunk {
+            ihdr.width as usize
+        } else {
+            0
+        }
     }
 
     fn set_pixel(&mut self, x: usize, y: usize, pixel: crate::models::Pixel) -> Option<()> {
