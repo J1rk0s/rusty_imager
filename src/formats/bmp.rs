@@ -153,7 +153,7 @@ impl Bmp {
     fn parse_header(data: &[u8]) -> Option<BmpHeader> {
         let signature = data.get(0..2)?;
 
-        if signature != [0x42, 0x4D] {
+        if signature != b"BM" {
             return None
         }
 

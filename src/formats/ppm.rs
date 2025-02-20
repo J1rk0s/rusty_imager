@@ -122,8 +122,17 @@ impl Ppm {
         })
     }
 
-    fn parse_ascii(_data: &[u8]) -> Option<Vec<Pixel>> {
-       todo!()
+    // TODO: Test this!
+    fn parse_ascii(data: &[u8]) -> Option<Vec<Pixel>> {
+        let mut pixels: Vec<Pixel> = vec![];
+
+        let pxs = std::str::from_utf8(data).ok()?;
+        for c in pxs.split(' ') {
+            if c == "1" { pixels.push(Colors::WHITE); }
+            else { pixels.push(Colors::BLACK); }
+        }
+
+        Some(pixels)
     }
 
     fn parse_binary(data: &[u8]) -> Option<Vec<Pixel>> {

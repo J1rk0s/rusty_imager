@@ -143,7 +143,7 @@ pub enum PngChunk {
 
 impl Png {
     pub fn parse(data: &[u8]) -> Option<Self> {
-        if data.len() < 64 {
+        if data.len() < 8 {
             return None;
         }
 
@@ -376,7 +376,7 @@ impl ImageFormat for Png {
     }
 
     fn get_width(&self) -> usize {
-        let chunk = self.get_chunk(b"IHDR").expect("Image does not have height metadata");
+        let chunk = self.get_chunk(b"IHDR").expect("Image does not have width metadata");
 
         if let PngChunk::IHDR(ihdr) = chunk {
             ihdr.width as usize
