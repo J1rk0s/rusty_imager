@@ -2,8 +2,9 @@
 Library that helps you manipulate images in rust
 
 ## Supported formats
-* BMP
-* PNG (planned)
+* BMP (Mostly complete)
+* PPM (Mostly complete)
+* PNG (WIP)
 * JPG (planned)
 
 ## Available filters
@@ -16,7 +17,7 @@ Library that helps you manipulate images in rust
 * Threshold
 * Oil painting
 * Edge detection
-* Emboss (not yet implemented)
+* Emboss (WIP)
 
 ## Instalation
 Add this library to your project with cargo
@@ -33,7 +34,7 @@ use rusty_imager::filters::<FILTER NAME>;
 let img = Image::from_file("<path>").expect("Failed to open the image");
 img.apply_filter(<FILTER NAME>);
 
-img.save("<name>.bmp");
+img.save("<name>.<extension>");
 ```
 
 ### Getting a single pixel
@@ -52,7 +53,7 @@ match img.get_pixel(x, y) {
     }
 }
 
-img.save("<name>.bmp");
+img.save("<name>.<extension>");
 ```
 
 ### Defining a custom filter
