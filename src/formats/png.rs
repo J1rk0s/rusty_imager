@@ -1,9 +1,12 @@
+use crate::models::Pixel;
+
 use super::ImageFormat;
 
 #[allow(dead_code)]
 pub struct Png {
     header: PngHeader,
-    chunks: Vec<PngChunk>
+    chunks: Vec<PngChunk>,
+    pixels: Vec<Pixel>
 }
 
 #[allow(dead_code)]
@@ -82,7 +85,7 @@ pub struct PngPhys {
 }
 
 #[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct PngTime {
     length: u32,
     signature: [u8; 4],
@@ -98,7 +101,7 @@ pub struct PngTime {
 }
 
 #[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PngText {
     length: u32,
     signature: [u8; 4],
@@ -110,7 +113,7 @@ pub struct PngText {
 }
 
 #[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PngIdata {
     length: u32,
     signature: [u8; 4],
@@ -121,7 +124,7 @@ pub struct PngIdata {
 }
 
 #[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct PngIend {
     length: u32,
     signature: [u8; 4],
@@ -149,10 +152,13 @@ impl Png {
 
         let header: PngHeader = unsafe { std::ptr::read(data[0..8].as_ptr() as *const _) };
         let chunks = Png::parse_chunks(data.get(8..)?)?;
+        let pixels = Png::parse_pixels(Png::get_idata_chunks(&chunks));
+
 
         Some(Self {
             header,
-            chunks
+            chunks,
+            pixels: vec![]
         })
     }
 
@@ -278,6 +284,22 @@ impl Png {
         todo!()
     }
 
+    fn get_idata_chunks(chunks: &Vec<PngChunk>) -> Vec<PngIdata> {
+        let mut res: Vec<PngIdata> = vec![];
+
+        for chunk in chunks {
+            match chunk {
+                PngChunk::IDAT(idata) => {
+                    res.push(idata.clone());
+                }
+
+                _ => continue
+            }
+        }
+
+        res
+    }
+
     fn parse_chunks(data: &[u8]) -> Option<Vec<PngChunk>> {
         let mut chunks: Vec<PngChunk> = vec![];
         let mut index = 0;
@@ -345,6 +367,14 @@ impl Png {
             PngChunk::TIME(_) => signature == b"tIME",
             PngChunk::Unknown { signature: sig, .. } => sig == signature,
         })
+    }
+
+    fn parse_pixels(idata: Vec<PngIdata>) -> Vec<Pixel> {
+        let mut pixels: Vec<Pixel> = vec![];
+
+
+
+        pixels
     }
 }
 
