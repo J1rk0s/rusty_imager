@@ -1,6 +1,7 @@
 use std::io::Read;
 
 use flate2::read::ZlibDecoder;
+use rkyv::{rancor::Error, Archive, Deserialize, Serialize};
 
 use crate::models::Pixel;
 
@@ -15,7 +16,11 @@ pub struct Png {
 
 #[allow(dead_code)]
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Archive, Clone)]
+#[rkyv(
+    compare(PartialEq),
+    derive(Debug),
+)]
 pub struct PngHeader {
     high_byte: u8,
     signature: [u8; 3],
@@ -24,7 +29,11 @@ pub struct PngHeader {
     unix_line_end: u8
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Archive, Clone)]
+#[rkyv(
+    compare(PartialEq),
+    derive(Debug),
+)]
 #[repr(u8)]
 pub enum PngColorType {
     Grayscale = 0,
@@ -32,21 +41,33 @@ pub enum PngColorType {
     Unknown
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Archive, Clone)]
+#[rkyv(
+    compare(PartialEq),
+    derive(Debug),
+)]
 #[repr(u8)]
 pub enum PngInterlacing {
     None,
     Adam7
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Archive, Clone)]
+#[rkyv(
+    compare(PartialEq),
+    derive(Debug),
+)]
 pub enum PngUnit {
     Unknown,
     Meter
 }
 
 #[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Archive, Clone)]
+#[rkyv(
+    compare(PartialEq),
+    derive(Debug),
+)]
 pub struct PngIhdr {
     length: u32,
     signature: [u8; 4],
@@ -63,7 +84,11 @@ pub struct PngIhdr {
 }
 
 #[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Archive, Clone)]
+#[rkyv(
+    compare(PartialEq),
+    derive(Debug),
+)]
 pub struct PngIccp {
     length: u32,
     signature: [u8; 4],
@@ -76,7 +101,11 @@ pub struct PngIccp {
 }
 
 #[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Archive, Clone)]
+#[rkyv(
+    compare(PartialEq),
+    derive(Debug),
+)]
 pub struct PngPhys {
     length: u32,
     signature: [u8; 4],
@@ -89,7 +118,11 @@ pub struct PngPhys {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Archive, Clone)]
+#[rkyv(
+    compare(PartialEq),
+    derive(Debug),
+)]
 pub struct PngTime {
     length: u32,
     signature: [u8; 4],
@@ -105,7 +138,11 @@ pub struct PngTime {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Archive, Clone)]
+#[rkyv(
+    compare(PartialEq),
+    derive(Debug),
+)]
 pub struct PngText {
     length: u32,
     signature: [u8; 4],
@@ -117,7 +154,11 @@ pub struct PngText {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Archive, Clone)]
+#[rkyv(
+    compare(PartialEq),
+    derive(Debug),
+)]
 pub struct PngIdata {
     length: u32,
     signature: [u8; 4],
@@ -128,14 +169,22 @@ pub struct PngIdata {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Archive, Clone)]
+#[rkyv(
+    compare(PartialEq),
+    derive(Debug),
+)]
 pub struct PngIend {
     length: u32,
     signature: [u8; 4],
     crc: u32
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Archive, Clone)]
+#[rkyv(
+    compare(PartialEq),
+    derive(Debug),
+)]
 pub enum PngChunk {
     IHDR(PngIhdr),
     IDAT(PngIdata),
@@ -400,9 +449,9 @@ impl Png {
             let color = data.get(i..i+3);
 
             if let Some(color) = color {
-                let b = color[0];
+                let r = color[0];
                 let g = color[1];
-                let r = color[2];
+                let b = color[2];
 
                 pixels.push(Pixel {
                     r, g, b
@@ -410,8 +459,6 @@ impl Png {
             }
 
         }
-
-        println!("{:?}", pixels);
 
         pixels
     }
@@ -431,32 +478,32 @@ impl Png {
         let mut prev_row: Vec<u8> = vec![0; width * bytes_per_pixel];
     
         for chunk in data.chunks(stride) {
-            let filter_type = chunk[0]; // First byte is the filter type
-            let scanline = &chunk[1..]; // Actual pixel data
+            let filter_type = chunk[0];
+            let scanline = &chunk[1..];
     
             let mut row = vec![0; width * bytes_per_pixel];
     
             match filter_type {
                 0 => {
-                    // None (just copy)
+                    // None
                     row.copy_from_slice(scanline);
                 }
                 1 => {
-                    // Sub (uses left pixel)
+                    // Sub
                     for i in 0..width * bytes_per_pixel {
                         let left = if i >= bytes_per_pixel { row[i - bytes_per_pixel] } else { 0 };
                         row[i] = scanline[i].wrapping_add(left);
                     }
                 }
                 2 => {
-                    // Up (uses pixel above)
+                    // Up
                     for i in 0..width * bytes_per_pixel {
                         let above = prev_row[i];
                         row[i] = scanline[i].wrapping_add(above);
                     }
                 }
                 3 => {
-                    // Average (uses left + above)
+                    // Average
                     for i in 0..width * bytes_per_pixel {
                         let left = if i >= bytes_per_pixel { row[i - bytes_per_pixel] } else { 0 };
                         let above = prev_row[i];
@@ -464,7 +511,7 @@ impl Png {
                     }
                 }
                 4 => {
-                    // Paeth (uses left, above, and top-left)
+                    // Paeth
                     for i in 0..width * bytes_per_pixel {
                         let left = if i >= bytes_per_pixel { row[i - bytes_per_pixel] } else { 0 };
                         let above = prev_row[i];
@@ -540,10 +587,34 @@ impl ImageFormat for Png {
     }
 
     fn set_pixel(&mut self, x: usize, y: usize, pixel: crate::models::Pixel) -> Option<()> {
-        todo!()
+        if x > self.get_width() - 1 || y > self.get_height() - 1 {
+            return None
+        }
+
+        let width = self.get_width();
+
+        self.pixels[(width * y) + x] = pixel;
+        Some(())
     }
 
     fn to_bytes(&self) -> Vec<u8> {
-        todo!()
+        let mut res: Vec<u8> = vec![];
+        res.append(rkyv::to_bytes::<Error>(&self.header).unwrap().to_vec().as_mut());
+        
+        for chunk in self.chunks.iter() {
+            if let PngChunk::IDAT(data) = chunk {
+                let mut hasher = crc32fast::Hasher::new();
+                hasher.update(&data.data);
+                let crc = hasher.finalize();
+
+                res.append(crc.to_le_bytes().to_vec().as_mut());
+                res.append(data.data.clone().as_mut());
+                continue;
+            }
+
+            res.append(rkyv::to_bytes::<Error>(chunk).unwrap().to_vec().as_mut());
+        }
+        
+        res
     }
 }

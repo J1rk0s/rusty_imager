@@ -1,7 +1,7 @@
-use rusty_imager::{formats::ImageFormat, Image};
+use rusty_imager::{filters::Grayscale, formats::ImageFormat, Image};
 
 fn main() {
-    let img = Image::from_file("data/reference.png").unwrap();
-    println!("{:?}", img.get_pixel(0, 2));
-    //img.save("test.png").unwrap();
+    let mut img = Image::from_file("data/reference.png").unwrap();
+    img.apply_filter(Grayscale::new());
+    img.save("test.png").unwrap();
 }
