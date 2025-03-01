@@ -1,3 +1,7 @@
+use std::io::Read;
+
+use flate2::read::ZlibDecoder;
+
 use crate::models::Pixel;
 
 use super::ImageFormat;
@@ -152,13 +156,14 @@ impl Png {
 
         let header: PngHeader = unsafe { std::ptr::read(data[0..8].as_ptr() as *const _) };
         let chunks = Png::parse_chunks(data.get(8..)?)?;
-        let pixels = Png::parse_pixels(Png::get_idata_chunks(&chunks));
+        let metadata = Png::get_idhr(&chunks)?;
+        let pixels = Png::parse_pixels(Png::get_idata_chunks(&chunks), metadata.width as usize);
 
 
         Some(Self {
             header,
             chunks,
-            pixels: vec![]
+            pixels
         })
     }
 
@@ -300,6 +305,17 @@ impl Png {
         res
     }
 
+    fn get_idhr<'a>(chunks: &'a Vec<PngChunk>) -> Option<&'a PngIhdr> {
+        for chunk in chunks {
+            match chunk {
+                PngChunk::IHDR(data) => return Some(data),
+                _ => continue
+            }
+        }
+
+        None
+    }
+
     fn parse_chunks(data: &[u8]) -> Option<Vec<PngChunk>> {
         let mut chunks: Vec<PngChunk> = vec![];
         let mut index = 0;
@@ -369,12 +385,116 @@ impl Png {
         })
     }
 
-    fn parse_pixels(idata: Vec<PngIdata>) -> Vec<Pixel> {
+    fn parse_pixels(idata: Vec<PngIdata>, width: usize) -> Vec<Pixel> {
         let mut pixels: Vec<Pixel> = vec![];
+        let mut bytes: Vec<u8> = vec![];
 
+        for data in idata {
+            let mut decoder = ZlibDecoder::new(&data.data[..]);
+            decoder.read_to_end(&mut bytes).unwrap();
+        }
 
+        let data = Png::undo_png_filtering(&bytes, width, PngColorType::RGB);
+
+        for i in (0..data.len()).step_by(3) {
+            let color = data.get(i..i+3);
+
+            if let Some(color) = color {
+                let b = color[0];
+                let g = color[1];
+                let r = color[2];
+
+                pixels.push(Pixel {
+                    r, g, b
+                });
+            }
+
+        }
+
+        println!("{:?}", pixels);
 
         pixels
+    }
+
+    fn undo_png_filtering(data: &[u8], width: usize, color_type: PngColorType) -> Vec<u8> {
+        let mut bytes_per_pixel = 0;
+
+        match color_type {
+            PngColorType::RGB => bytes_per_pixel = 3,
+            PngColorType::Grayscale => bytes_per_pixel = 1,
+            PngColorType::Unknown => bytes_per_pixel = 0
+        }
+
+        let stride = width * bytes_per_pixel + 1;
+        let mut output = Vec::with_capacity(data.len() - data.len() / stride);
+    
+        let mut prev_row: Vec<u8> = vec![0; width * bytes_per_pixel];
+    
+        for chunk in data.chunks(stride) {
+            let filter_type = chunk[0]; // First byte is the filter type
+            let scanline = &chunk[1..]; // Actual pixel data
+    
+            let mut row = vec![0; width * bytes_per_pixel];
+    
+            match filter_type {
+                0 => {
+                    // None (just copy)
+                    row.copy_from_slice(scanline);
+                }
+                1 => {
+                    // Sub (uses left pixel)
+                    for i in 0..width * bytes_per_pixel {
+                        let left = if i >= bytes_per_pixel { row[i - bytes_per_pixel] } else { 0 };
+                        row[i] = scanline[i].wrapping_add(left);
+                    }
+                }
+                2 => {
+                    // Up (uses pixel above)
+                    for i in 0..width * bytes_per_pixel {
+                        let above = prev_row[i];
+                        row[i] = scanline[i].wrapping_add(above);
+                    }
+                }
+                3 => {
+                    // Average (uses left + above)
+                    for i in 0..width * bytes_per_pixel {
+                        let left = if i >= bytes_per_pixel { row[i - bytes_per_pixel] } else { 0 };
+                        let above = prev_row[i];
+                        row[i] = scanline[i].wrapping_add(((left as u16 + above as u16) / 2) as u8);
+                    }
+                }
+                4 => {
+                    // Paeth (uses left, above, and top-left)
+                    for i in 0..width * bytes_per_pixel {
+                        let left = if i >= bytes_per_pixel { row[i - bytes_per_pixel] } else { 0 };
+                        let above = prev_row[i];
+                        let upper_left = if i >= bytes_per_pixel { prev_row[i - bytes_per_pixel] } else { 0 };
+                        row[i] = scanline[i].wrapping_add(Png::paeth_predictor(left, above, upper_left));
+                    }
+                }
+                _ => panic!("Unknown filter type: {}", filter_type),
+            }
+    
+            output.extend_from_slice(&row);
+            prev_row = row;
+        }
+    
+        output
+    }
+
+    fn paeth_predictor(a: u8, b: u8, c: u8) -> u8 {
+        let p = a as i16 + b as i16 - c as i16;
+        let pa = (p - a as i16).abs();
+        let pb = (p - b as i16).abs();
+        let pc = (p - c as i16).abs();
+    
+        if pa <= pb && pa <= pc {
+            a
+        } else if pb <= pc {
+            b
+        } else {
+            c
+        }
     }
 }
 
@@ -394,7 +514,11 @@ impl ImageFormat for Png {
     }
 
     fn get_pixel(&self, x: usize, y: usize) -> Option<&crate::models::Pixel> {
-        todo!()
+        if x > self.get_width() - 1 || y > self.get_height() - 1 {
+            return None
+        }
+
+        self.pixels.get((self.get_width() * y) + x)
     }
 
     fn get_signature(&self) -> String {
