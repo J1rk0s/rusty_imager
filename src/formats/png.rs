@@ -598,23 +598,30 @@ impl ImageFormat for Png {
     }
 
     fn to_bytes(&self) -> Vec<u8> {
-        let mut res: Vec<u8> = vec![];
-        res.append(rkyv::to_bytes::<Error>(&self.header).unwrap().to_vec().as_mut());
-        
-        for chunk in self.chunks.iter() {
-            if let PngChunk::IDAT(data) = chunk {
-                let mut hasher = crc32fast::Hasher::new();
-                hasher.update(&data.data);
-                let crc = hasher.finalize();
+        let mut res: Vec<u8> = Vec::new();
 
-                res.append(crc.to_le_bytes().to_vec().as_mut());
-                res.append(data.data.clone().as_mut());
-                continue;
+        res.extend_from_slice(&rkyv::to_bytes::<Error>(&self.header).unwrap());
+
+        for chunk in &self.chunks {
+            match chunk {
+                PngChunk::IDAT(data) => {
+                    let mut hasher = crc32fast::Hasher::new();
+
+                    let chunk_type = b"IDAT";
+                    hasher.update(chunk_type);
+                    hasher.update(&data.data);
+                    let crc = hasher.finalize();
+
+                    res.extend_from_slice(chunk_type);
+                    res.extend_from_slice(&data.data);
+                    res.extend_from_slice(&crc.to_be_bytes());
+                }
+                _ => {
+                    res.extend_from_slice(&rkyv::to_bytes::<Error>(chunk).unwrap());
+                }
             }
-
-            res.append(rkyv::to_bytes::<Error>(chunk).unwrap().to_vec().as_mut());
         }
-        
+
         res
     }
 }
